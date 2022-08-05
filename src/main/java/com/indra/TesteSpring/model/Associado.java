@@ -1,5 +1,6 @@
 package com.indra.TesteSpring.model;
 
+import com.indra.TesteSpring.model.enums.Genero;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -17,6 +18,7 @@ import javax.persistence.*;
 public class Associado  {
     @Id
     @Column
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer idAssociado;
 
     @Column
@@ -31,8 +33,8 @@ public class Associado  {
     @Column
     private String genero;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn
+    @OneToOne(cascade = CascadeType.ALL,fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_cargo")
     private CargoAssociado idCargo;
 
     /*
