@@ -1,52 +1,71 @@
 package com.indra.TesteSpring.service;
 
+import com.indra.TesteSpring.dto.AssociadoDto;
+import com.indra.TesteSpring.dto.AssociadoSemGeneroDto;
 import com.indra.TesteSpring.model.Associado;
 import com.indra.TesteSpring.model.enums.Genero;
 import com.indra.TesteSpring.repository.AssociadoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
-
 @Service
 @RequiredArgsConstructor
 public class AssociadoService{
     private final AssociadoRepository repository;
 
-    public Optional<Associado> findById(Integer idAssociado){
-        return repository.findById(idAssociado);
+    public Associado findById(Integer idAssociado){
+        return repository.findById(idAssociado).orElseThrow(null);
     }
 
-    public Associado adicionarAssociadoTeste(Integer numeroTelefone, String nome, String sobreNome, Genero genero){
-        return repository.save(Associado.builder()
-                .numeroTelefone(numeroTelefone)
-                .nome(nome)
-                .sobreNome(sobreNome)
+    public AssociadoDto salvarAssociado(AssociadoSemGeneroDto associadoSemGeneroDto, Genero genero){
+        AssociadoDto associadoDto = AssociadoDto.builder()
+                .numeroTelefone(associadoSemGeneroDto.getNumeroTelefone())
+                .nome(associadoSemGeneroDto.getNome())
+                .sobreNome(associadoSemGeneroDto.getSobreNome())
                 .genero(genero.getProperty())
-                .idCargo(null)
-                .build());
+                .idCargo(associadoSemGeneroDto.getIdCargo())
+                .build();
+        Associado entidade = transformarEmEntidade(associadoDto);
+        Associado entidadeFinal = repository.save(entidade);
+        return transformarEmDto(entidadeFinal);
     }
 
-//    public void atualizarAssociadoPorId(Integer idAssociado, AssociadoDto associadoDto) {
-//        Associado associado = repository.getReferenceById(idAssociado);
-//        associado.setIdAssociado(associadoDto.getIdAssociado());
-//        associado.setNumeroTelefone(associadoDto.getNumeroTelefone());
-//        associado.setNome(associadoDto.getNome());
-//        associado.setSobreNome(associadoDto.getSobreNome());
-//        associado.setGenero(associadoDto.getGenero());
-//        associado.setIdCargo(associadoDto.getIdCargo());
-//        repository.save(associado);
-//    }
+    public AssociadoDto atualizarAssociado(Associado associado, Genero genero) {
+        Associado associadoEscolhido = repository.findById(associado.getIdAssociado()).orElseThrow(null);
+        associadoEscolhido.setIdAssociado(associado.getIdAssociado());
+        associadoEscolhido.setNumeroTelefone(associado.getNumeroTelefone());
+        associadoEscolhido.setNome(associado.getNome());
+        associadoEscolhido.setSobreNome(associado.getSobreNome());
+        associadoEscolhido.setGenero(genero.getProperty());
+        associadoEscolhido.setIdCargo(associado.getIdCargo());
+        repository.save(associadoEscolhido);
+        return transformarEmDto(associadoEscolhido);
+    }
 
-//    public void deletarAssociadoPorId(Integer idAssociado) {
-//        Associado associado = repository.getReferenceById(idAssociado);
-//        repository.delete(associado);
-//    }
-//
-//    public Optional<Associado> obterAssociadoPorId(Integer idAssociado) throws AssociadoNotFoundException {
-////        return repository.findById(idAssociado);
-//        return repository
-//                .findById(idAssociado);
-////                .orElseThrow(() -> new AssociadoNotFoundException("Não foi encontrado"));
-//    }
+    public String deletarAssociadoPorId(Integer idAssociado) {
+        repository.deleteById(idAssociado);
+        return "Associado removido: " + idAssociado;
+    }
+
+    private Associado transformarEmEntidade(final AssociadoDto dto) {
+        return
+                Associado.builder()
+                        .numeroTelefone(dto.getNumeroTelefone())
+                        .nome(dto.getNome())
+                        .sobreNome(dto.getSobreNome())
+                        .genero(dto.getGenero())
+                        .idCargo(dto.getIdCargo())
+                        .build();
+    }
+
+    private AssociadoDto transformarEmDto(final Associado entity) {
+        return
+                AssociadoDto.builder()
+                        .numeroTelefone(entity.getNumeroTelefone())
+                        .nome(entity.getNome())
+                        .sobreNome(entity.getSobreNome())
+                        .genero(entity.getGenero())
+                        .idCargo(entity.getIdCargo())
+                        .build();
+    }
 }
